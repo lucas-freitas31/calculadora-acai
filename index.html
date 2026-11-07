@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Custos - Açaí no Copo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        acai: {
+                            50: '#f5f0f8',
+                            100: '#ebd9f1',
+                            200: '#d8b5e4',
+                            500: '#701a75',
+                            600: '#58115e',
+                            700: '#430b49',
+                            800: '#2d0532',
+                            900: '#1d0121',
+                        },
+                        guarana: {
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for better visual feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c0a0ca;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #701a75;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .print-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen pb-12">
+
+    <!-- Header / Navbar -->
+    <header class="bg-gradient-to-r from-acai-900 via-acai-700 to-acai-800 text-white shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-guarana-500 text-acai-900 flex items-center justify-center text-2xl font-black shadow-md">
+                        <i class="fa-solid font-bold fa-bowl-food"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-extrabold tracking-tight">Açaí Cost Pro</h1>
+                        <p class="text-acai-200 text-xs sm:text-sm">Calculadora Precisa de Custos, Margens e Precificação</p>
+                    </div>
+                </div>
+                <!-- Action Buttons Header -->
+                <div class="flex items-center gap-2">
+                    <button onclick="resetDefaults()" class="text-xs sm:text-sm bg-acai-800 hover:bg-acai-600 text-white font-medium py-2 px-3 sm:px-4 rounded-xl border border-acai-600 transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> Restaurar Padrão
+                    </button>
+                    <button onclick="window.print()" class="text-xs sm:text-sm bg-guarana-500 hover:bg-guarana-600 text-acai-900 font-bold py-2 px-3 sm:px-4 rounded-xl transition shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Imprimir Relatório
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        
+        <!-- Size Selection Presets -->
+        <section class="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-6 border border-slate-200/80 no-print">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-wine-glass text-acai-600"></i> Selecione ou Defina o Tamanho do Copo
+                    </h2>
+                    <p class="text-xs text-slate-500">Escolha um modelo rápido ou edite a gramatura de açaí manualmente abaixo.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="selectPreset(300)" id="preset-300" class="preset-btn font-semibold text-sm py-2 px-4 rounded-xl border transition flex items-center gap-2 border-acai-500 bg-acai-50 text-acai-700">
+                        <i class="fa-solid fa-glass-water text-xs"></i> 300 ml
+                    </button>
+                    <button onclick="selectPreset(500)" id="preset-500" class="preset-btn font-semibold text-sm py-2 px-4 rounded-xl border transition flex items-center gap-2 border-slate-200 hover:border-acai-300 text-slate-600">
+                        <i class="fa-solid fa-glass-water text-sm"></i> 500 ml
+                    </button>
+                    <button onclick="selectPreset(700)" id="preset-700" class="preset-btn font-semibold text-sm py-2 px-4 rounded-xl border transition flex items-center gap-2 border-slate-200 hover:border-acai-300 text-slate-600">
+                        <i class="fa-solid fa-glass-water text-base"></i> 700 ml
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form & Results Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Column: Inputs & Recipe Configuration (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- 1. Base Açaí Mix -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-6 border border-slate-200/80">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-lg text-acai-900 flex items-center gap-2">
+                            <i class="fa-solid fa-bucket text-acai-600"></i> Base de Açaí
+                        </h3>
+                        <span class="text-xs font-semibold bg-acai-100 text-acai-700 px-2.5 py-1 rounded-full">Massa Principal</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Preço do Balde/Caixa (R$)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400 text-sm">R$</span>
+                                <input type="number" step="0.01" id="acai-pack-price" value="120.00" oninput="calculateAll()" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 focus:bg-white text-sm font-semibold text-slate-800 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Peso Total da Embalagem (kg)</label>
+                            <div class="relative">
+                                <input type="number" step="0.1" id="acai-pack-weight" value="10.0" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 focus:bg-white text-sm font-semibold text-slate-800 transition">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-xs font-semibold">kg</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Açaí no Copo (Gramas)</label>
+                            <div class="relative">
+                                <input type="number" step="5" id="acai-cup-portion" value="250" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 focus:bg-white text-sm font-bold text-acai-700 transition">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-xs font-semibold">g</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 bg-acai-50/50 rounded-xl p-2.5 flex justify-between items-center text-xs text-acai-800">
+                        <span>Custo da porção de açaí:</span>
+                        <span id="acai-portion-cost-display" class="font-bold text-sm">R$ 3,00</span>
+                    </div>
+                </div>
+
+                <!-- 2. Packaging & Descartáveis -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-6 border border-slate-200/80">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-lg text-acai-900 flex items-center gap-2">
+                            <i class="fa-solid fa-box text-acai-600"></i> Embalagens & Descartáveis
+                        </h3>
+                        <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">Por Unidade</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Copo (R$)</label>
+                            <input type="number" step="0.01" id="pack-cup" value="0.45" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Tampa (R$)</label>
+                            <input type="number" step="0.01" id="pack-lid" value="0.25" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Colher (R$)</label>
+                            <input type="number" step="0.01" id="pack-spoon" value="0.10" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Guardana./Canudo (R$)</label>
+                            <input type="number" step="0.01" id="pack-napkin" value="0.05" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Sacola / Sacochila (R$)</label>
+                            <input type="number" step="0.01" id="pack-bag" value="0.30" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Etiqueta / Adesivo (R$)</label>
+                            <input type="number" step="0.01" id="pack-sticker" value="0.15" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-medium">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Dynamic Toppings & Add-ins -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-6 border border-slate-200/80">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <div>
+                            <h3 class="font-bold text-lg text-acai-900 flex items-center gap-2">
+                                <i class="fa-solid fa-stroopwafel text-acai-600"></i> Acompanhamentos e Caldas
+                            </h3>
+                            <p class="text-xs text-slate-500">Adicione as porções colocadas no copo</p>
+                        </div>
+                        <button onclick="addToppingRow()" class="no-print text-xs bg-acai-50 text-acai-700 hover:bg-acai-100 border border-acai-200 font-bold py-2 px-3 rounded-xl transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-xs"></i> Adicionar Acompanhamento
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead>
+                                <tr class="text-slate-500 border-b border-slate-200">
+                                    <th class="pb-2 font-semibold min-w-[130px]">Ingrediente</th>
+                                    <th class="pb-2 font-semibold min-w-[100px]">Preço Embalagem</th>
+                                    <th class="pb-2 font-semibold min-w-[90px]">Qtd. Total (g/ml)</th>
+                                    <th class="pb-2 font-semibold min-w-[90px]">Porção Copo (g/ml)</th>
+                                    <th class="pb-2 font-semibold text-right min-w-[70px]">Custo Porção</th>
+                                    <th class="pb-2 text-center w-8 no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="toppings-container" class="divide-y divide-slate-100">
+                                <!-- Dynamic rows inserted by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 flex justify-end text-xs font-semibold text-slate-700">
+                        <span>Total de Acompanhamentos: <strong id="toppings-total-cost" class="text-acai-700 text-sm">R$ 0,00</strong></span>
+                    </div>
+                </div>
+
+                <!-- 4. Operational Overhead & Percentage Fees -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-6 border border-slate-200/80">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="font-bold text-lg text-acai-900 flex items-center gap-2">
+                            <i class="fa-solid fa-percent text-acai-600"></i> Taxas & Custos Operacionais
+                        </h3>
+                        <span class="text-xs font-semibold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full">Porcentagens sobre Venda</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Comissão Marketplace / App (%)</label>
+                            <div class="relative">
+                                <input type="number" step="0.5" id="fee-app" value="12.0" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-semibold">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-xs font-bold">%</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">Ex: iFood (12% a 27%)</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Taxa Cartão / Meio de Pgto (%)</label>
+                            <div class="relative">
+                                <input type="number" step="0.1" id="fee-card" value="3.5" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-semibold">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-xs font-bold">%</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">Média de débito/crédito</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Impostos / Custos Fixos (%)</label>
+                            <div class="relative">
+                                <input type="number" step="0.5" id="fee-tax" value="6.0" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-semibold">
+                                <span class="absolute right-3 top-2.5 text-slate-400 text-xs font-bold">%</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">Simples Nacional + luz/aluguel</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Results & Margin Calculator (5 cols) -->
+            <div class="lg:col-span-5 space-y-6 print-full-width">
+
+                <!-- Main Cost Breakdown Card -->
+                <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden border border-slate-800">
+                    <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-acai-600 rounded-full blur-3xl opacity-30"></div>
+                    
+                    <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-1">Resumo de Custo Direto</h3>
+                    <div class="flex items-baseline justify-between mb-4">
+                        <span class="text-3xl sm:text-4xl font-black text-white" id="total-cogs-display">R$ 0,00</span>
+                        <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700">CPV (Insumos + Embalagem)</span>
+                    </div>
+
+                    <div class="space-y-2 border-t border-slate-800 pt-4 text-xs sm:text-sm">
+                        <div class="flex justify-between text-slate-300">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-acai-500"></i> Custo Açaí Base:</span>
+                            <span id="summary-acai-cost" class="font-semibold text-white">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-amber-500"></i> Acompanhamentos:</span>
+                            <span id="summary-toppings-cost" class="font-semibold text-white">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-blue-400"></i> Total Embalagens:</span>
+                            <span id="summary-packaging-cost" class="font-semibold text-white">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing & Profit Calculator -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-6 border border-slate-200/80 space-y-5">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-lg text-acai-900 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-guarana-600"></i> Formação do Preço & Lucro
+                        </h3>
+                    </div>
+
+                    <!-- Mode Toggle: Target Margin vs Custom Price -->
+                    <div class="grid grid-cols-1 gap-4">
+                        
+                        <!-- Target Margin Input -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Margem de Lucro Desejada (%)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" id="target-margin-slider" min="10" max="80" value="40" oninput="syncMarginInput(this.value)" class="w-full accent-acai-600 no-print">
+                                <div class="relative w-28">
+                                    <input type="number" id="target-margin-input" value="40" oninput="syncMarginSlider(this.value)" class="w-full px-2 py-1 bg-slate-50 border border-slate-300 rounded-lg text-sm font-bold text-right pr-6">
+                                    <span class="absolute right-2 top-1.5 text-xs text-slate-400 font-bold">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Suggested Price Display -->
+                        <div class="bg-guarana-50 border border-guarana-200 rounded-xl p-3 flex justify-between items-center">
+                            <div>
+                                <span class="block text-xs font-bold text-guarana-900">Preço Sugerido de Venda</span>
+                                <span class="text-[10px] text-guarana-700">Cobre insumos + taxas (%):</span>
+                            </div>
+                            <span id="suggested-price-display" class="text-xl font-black text-guarana-700">R$ 0,00</span>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        <!-- Custom Selling Price Input -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Seu Preço Praticado / Final (R$)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">R$</span>
+                                <input type="number" step="0.50" id="custom-price" value="18.00" oninput="calculateAll()" class="w-full pl-10 pr-3 py-2.5 bg-acai-50/40 border-2 border-acai-200 rounded-xl focus:border-acai-600 text-lg font-black text-acai-900">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Calculated Real Profit Indicators -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
+                            <span class="block text-[11px] font-semibold text-slate-500 uppercase">Lucro Real Liquido</span>
+                            <span id="net-profit-display" class="text-lg font-extrabold text-guarana-600">R$ 0,00</span>
+                            <span class="block text-[10px] text-slate-400">Por copo</span>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-center">
+                            <span class="block text-[11px] font-semibold text-slate-500 uppercase">Margem Real</span>
+                            <span id="real-margin-display" class="text-lg font-extrabold text-acai-700">0.0%</span>
+                            <span class="block text-[10px] text-slate-400">Sob faturamento</span>
+                        </div>
+                    </div>
+
+                    <!-- Operational Deductions Breakdown -->
+                    <div class="bg-slate-50 rounded-xl p-3 text-xs space-y-1.5 text-slate-600">
+                        <div class="flex justify-between">
+                            <span>Desconto de Taxas/Impostos:</span>
+                            <span id="total-fees-amount" class="font-semibold text-red-500">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Insumos + Embalagem:</span>
+                            <span id="total-cogs-amount" class="font-semibold text-red-500">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-200 pt-1 font-bold text-slate-800">
+                            <span>Sobra Líquida Venda:</span>
+                            <span id="total-net-amount" class="text-guarana-600">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Monthly Projection Simulator -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 sm:p-6 border border-slate-200/80 space-y-4">
+                    <div class="border-b border-slate-100 pb-2 flex justify-between items-center">
+                        <h3 class="font-bold text-base text-acai-900 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-acai-600"></i> Projeção de Vendas Mensais
+                        </h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Vendas por Dia (Copos)</label>
+                            <input type="number" id="daily-sales" value="30" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Dias Trabalhados/Mês</label>
+                            <input type="number" id="days-month" value="26" oninput="calculateAll()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-acai-500 text-sm font-bold">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 bg-acai-900 text-white p-4 rounded-2xl text-xs sm:text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-300">Volume Total Mensal:</span>
+                            <span id="monthly-volume" class="font-bold">780 copos</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-300">Faturamento Bruto Mensal:</span>
+                            <span id="monthly-gross" class="font-bold text-guarana-400">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-300">Custo Total (Insumos + Taxas):</span>
+                            <span id="monthly-costs" class="font-semibold text-red-300">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between border-t border-acai-700 pt-2 text-sm sm:text-base font-extrabold">
+                            <span class="text-white">Lucro Líquido Estimado:</span>
+                            <span id="monthly-net" class="text-guarana-400">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-4 mt-12 text-center text-xs text-slate-400 no-print">
+        <p>Açaí Cost Pro &copy; Precificação Inteligente para Açaíterias e Gelato. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Preset default topping options
+        const defaultToppings = [
+            { name: "Leite em Pó", packPrice: 22.00, packWeight: 1000, portion: 20 },
+            { name: "Leite Condensado", packPrice: 8.50, packWeight: 395, portion: 30 },
+            { name: "Granola Premium", packPrice: 18.00, packWeight: 1000, portion: 25 },
+            { name: "Banana Picada", packPrice: 6.00, packWeight: 1000, portion: 50 },
+            { name: "Creme de Avelã (Nutella)", packPrice: 48.00, packWeight: 650, portion: 20 }
+        ];
+
+        let toppingsList = [...defaultToppings];
+
+        // Initialize App
+        window.onload = function() {
+            renderToppings();
+            calculateAll();
+        };
+
+        // Render dynamic toppings table
+        function renderToppings() {
+            const container = document.getElementById('toppings-container');
+            container.innerHTML = '';
+
+            toppingsList.forEach((top, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-100 hover:bg-slate-50/50 transition';
+                
+                const portionCost = top.packWeight > 0 ? (top.packPrice / top.packWeight) * top.portion : 0;
+
+                row.innerHTML = `
+                    <td class="py-2 pr-2">
+                        <input type="text" value="${top.name}" onchange="updateTopping(${index}, 'name', this.value)" class="w-full bg-transparent font-medium border-b border-transparent focus:border-acai-400 focus:bg-white px-1 py-0.5 rounded text-xs">
+                    </td>
+                    <td class="py-2 pr-2">
+                        <div class="relative">
+                            <span class="absolute left-1 top-1 text-slate-400 text-[10px]">R$</span>
+                            <input type="number" step="0.5" value="${top.packPrice}" oninput="updateTopping(${index}, 'packPrice', parseFloat(this.value) || 0)" class="w-full pl-5 pr-1 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold">
+                        </div>
+                    </td>
+                    <td class="py-2 pr-2">
+                        <input type="number" step="10" value="${top.packWeight}" oninput="updateTopping(${index}, 'packWeight', parseFloat(this.value) || 0)" class="w-full px-1 py-1 bg-slate-50 border border-slate-200 rounded text-xs text-center font-semibold">
+                    </td>
+                    <td class="py-2 pr-2">
+                        <input type="number" step="5" value="${top.portion}" oninput="updateTopping(${index}, 'portion', parseFloat(this.value) || 0)" class="w-full px-1 py-1 bg-slate-50 border border-slate-200 rounded text-xs text-center font-bold text-acai-700">
+                    </td>
+                    <td class="py-2 text-right font-bold text-slate-700 text-xs">
+                        R$ ${portionCost.toFixed(2)}
+                    </td>
+                    <td class="py-2 text-center no-print">
+                        <button onclick="removeTopping(${index})" class="text-slate-400 hover:text-red-500 transition px-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Add Topping Row
+        function addToppingRow() {
+            toppingsList.push({ name: "Novo Item", packPrice: 10.00, packWeight: 500, portion: 15 });
+            renderToppings();
+            calculateAll();
+        }
+
+        // Remove Topping Row
+        function removeTopping(index) {
+            toppingsList.splice(index, 1);
+            renderToppings();
+            calculateAll();
+        }
+
+        // Update Topping Data
+        function updateTopping(index, key, value) {
+            toppingsList[index][key] = value;
+            renderToppings();
+            calculateAll();
+        }
+
+        // Preset cup sizes
+        function selectPreset(size) {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('border-acai-500', 'bg-acai-50', 'text-acai-700');
+                btn.classList.add('border-slate-200', 'text-slate-600');
+            });
+
+            const activeBtn = document.getElementById(`preset-${size}`);
+            if(activeBtn) {
+                activeBtn.classList.add('border-acai-500', 'bg-acai-50', 'text-acai-700');
+                activeBtn.classList.remove('border-slate-200', 'text-slate-600');
+            }
+
+            // Adjust portions based on presets
+            if (size === 300) {
+                document.getElementById('acai-cup-portion').value = 200;
+                document.getElementById('custom-price').value = 14.00;
+            } else if (size === 500) {
+                document.getElementById('acai-cup-portion').value = 350;
+                document.getElementById('custom-price').value = 22.00;
+            } else if (size === 700) {
+                document.getElementById('acai-cup-portion').value = 500;
+                document.getElementById('custom-price').value = 28.00;
+            }
+
+            calculateAll();
+        }
+
+        // Margin slider sync
+        function syncMarginInput(val) {
+            document.getElementById('target-margin-input').value = val;
+            calculateAll();
+        }
+
+        function syncMarginSlider(val) {
+            document.getElementById('target-margin-slider').value = val;
+            calculateAll();
+        }
+
+        // Main Calculation Function
+        function calculateAll() {
+            // 1. Base Açaí Mix Calculation
+            const acaiPackPrice = parseFloat(document.getElementById('acai-pack-price').value) || 0;
+            const acaiPackWeightKg = parseFloat(document.getElementById('acai-pack-weight').value) || 0;
+            const acaiCupPortionG = parseFloat(document.getElementById('acai-cup-portion').value) || 0;
+
+            const acaiCostPerGram = (acaiPackWeightKg > 0) ? (acaiPackPrice / (acaiPackWeightKg * 1000)) : 0;
+            const acaiCupCost = acaiCostPerGram * acaiCupPortionG;
+
+            document.getElementById('acai-portion-cost-display').innerText = formatBRL(acaiCupCost);
+
+            // 2. Packaging Costs
+            const cup = parseFloat(document.getElementById('pack-cup').value) || 0;
+            const lid = parseFloat(document.getElementById('pack-lid').value) || 0;
+            const spoon = parseFloat(document.getElementById('pack-spoon').value) || 0;
+            const napkin = parseFloat(document.getElementById('pack-napkin').value) || 0;
+            const bag = parseFloat(document.getElementById('pack-bag').value) || 0;
+            const sticker = parseFloat(document.getElementById('pack-sticker').value) || 0;
+
+            const totalPackagingCost = cup + lid + spoon + napkin + bag + sticker;
+
+            // 3. Toppings Cost
+            let totalToppingsCost = 0;
+            toppingsList.forEach(t => {
+                if (t.packWeight > 0) {
+                    totalToppingsCost += (t.packPrice / t.packWeight) * t.portion;
+                }
+            });
+            document.getElementById('toppings-total-cost').innerText = formatBRL(totalToppingsCost);
+
+            // Total Direct Cost of Goods Sold (COGS)
+            const totalCOGS = acaiCupCost + totalPackagingCost + totalToppingsCost;
+
+            // Update Summary Display Cards
+            document.getElementById('total-cogs-display').innerText = formatBRL(totalCOGS);
+            document.getElementById('summary-acai-cost').innerText = formatBRL(acaiCupCost);
+            document.getElementById('summary-toppings-cost').innerText = formatBRL(totalToppingsCost);
+            document.getElementById('summary-packaging-cost').innerText = formatBRL(totalPackagingCost);
+
+            // 4. Percentage Overheads & Fees
+            const feeApp = (parseFloat(document.getElementById('fee-app').value) || 0) / 100;
+            const feeCard = (parseFloat(document.getElementById('fee-card').value) || 0) / 100;
+            const feeTax = (parseFloat(document.getElementById('fee-tax').value) || 0) / 100;
+
+            const totalFeePercent = feeApp + feeCard + feeTax;
+
+            // 5. Target Margin & Suggested Price Formula
+            // Price = COGS / (1 - (TotalFees% + TargetMargin%))
+            const targetMargin = (parseFloat(document.getElementById('target-margin-input').value) || 0) / 100;
+            let suggestedPrice = 0;
+            const denominator = 1 - (totalFeePercent + targetMargin);
+
+            if (denominator > 0) {
+                suggestedPrice = totalCOGS / denominator;
+            } else {
+                suggestedPrice = totalCOGS * 2.5; // Fallback safety factor
+            }
+            document.getElementById('suggested-price-display').innerText = formatBRL(suggestedPrice);
+
+            // 6. Custom/Real Selling Price Calculations
+            const customPrice = parseFloat(document.getElementById('custom-price').value) || 0;
+            const totalFeesAmount = customPrice * totalFeePercent;
+            const netProfit = customPrice - totalCOGS - totalFeesAmount;
+            const realMargin = customPrice > 0 ? (netProfit / customPrice) * 100 : 0;
+
+            document.getElementById('net-profit-display').innerText = formatBRL(netProfit);
+            document.getElementById('real-margin-display').innerText = realMargin.toFixed(1) + '%';
+            
+            // Text color according to profitability
+            const marginEl = document.getElementById('real-margin-display');
+            if (realMargin < 15) {
+                marginEl.className = 'text-lg font-extrabold text-red-600';
+            } else if (realMargin < 30) {
+                marginEl.className = 'text-lg font-extrabold text-amber-600';
+            } else {
+                marginEl.className = 'text-lg font-extrabold text-guarana-600';
+            }
+
+            document.getElementById('total-fees-amount').innerText = '- ' + formatBRL(totalFeesAmount);
+            document.getElementById('total-cogs-amount').innerText = '- ' + formatBRL(totalCOGS);
+            document.getElementById('total-net-amount').innerText = formatBRL(netProfit);
+
+            // 7. Monthly Projections
+            const dailySales = parseInt(document.getElementById('daily-sales').value) || 0;
+            const daysMonth = parseInt(document.getElementById('days-month').value) || 0;
+
+            const monthlyVolume = dailySales * daysMonth;
+            const monthlyGross = monthlyVolume * customPrice;
+            const monthlyTotalCosts = monthlyVolume * (totalCOGS + totalFeesAmount);
+            const monthlyNetProfit = monthlyGross - monthlyTotalCosts;
+
+            document.getElementById('monthly-volume').innerText = monthlyVolume.toLocaleString('pt-BR') + ' copos';
+            document.getElementById('monthly-gross').innerText = formatBRL(monthlyGross);
+            document.getElementById('monthly-costs').innerText = formatBRL(monthlyTotalCosts);
+            document.getElementById('monthly-net').innerText = formatBRL(monthlyNetProfit);
+        }
+
+        // Currency Formatter Helper
+        function formatBRL(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Reset to Defaults
+        function resetDefaults() {
+            document.getElementById('acai-pack-price').value = "120.00";
+            document.getElementById('acai-pack-weight').value = "10.0";
+            document.getElementById('acai-cup-portion').value = "250";
+            document.getElementById('pack-cup').value = "0.45";
+            document.getElementById('pack-lid').value = "0.25";
+            document.getElementById('pack-spoon').value = "0.10";
+            document.getElementById('pack-napkin').value = "0.05";
+            document.getElementById('pack-bag').value = "0.30";
+            document.getElementById('pack-sticker').value = "0.15";
+            document.getElementById('fee-app').value = "12.0";
+            document.getElementById('fee-card').value = "3.5";
+            document.getElementById('fee-tax').value = "6.0";
+            document.getElementById('target-margin-input').value = "40";
+            document.getElementById('target-margin-slider').value = "40";
+            document.getElementById('custom-price').value = "18.00";
+            document.getElementById('daily-sales').value = "30";
+            document.getElementById('days-month').value = "26";
+
+            toppingsList = [...defaultToppings];
+            renderToppings();
+            calculateAll();
+        }
+    </script>
+</body>
+</html>
